@@ -1,0 +1,6 @@
+#cmakedefine HAVE_POSIX_TERMIO
+#cmakedefine HAVE_CYGWIN
+#cmakedefine EHWE_DEBUGS_SERIAL
+
+
+
