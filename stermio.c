@@ -22,20 +22,16 @@
  */
 
 #include "config.h"
-#include "serial.h"
+#include <stermio.h>
 #include <log.h>
+#include <assure.h>
+#include <string.h>
 
 #ifdef HAVE_POSIX_TERMIO
 #include <termio.h>
 #else
 #error Only POSIX TERMIO supported by __FILE__
 #endif
-
-#include "config.h"
-#include "serial.h"
-#include <log.h>
-#include <assure.h>
-#include <string.h>
 
 #define LOGLINE_MAX 500
 
