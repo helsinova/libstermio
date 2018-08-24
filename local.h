@@ -17,13 +17,21 @@
  *   Free Software Foundation, Inc.,                                       *
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
-#ifndef serial_h
-#define serial_h
+/* Module-local functions and definitions */
 
-#include <termio.h>
+#ifndef stermio_local_h
+#define stermio_local_h
 
-void stio_bp_terminal(int fd);
-void stio_bp_raw(int fd);
-void stio_log(const char *leads, struct termios *termios_p);
+/*
+ *If enabled, debug logs in this file will be logged as warnings
+ */
+#ifdef EHWE_DEBUGS_SERIAL
+#  define TCLOG LOGW
+#else
+#  define TCLOG LOGD
+#endif
 
-#endif                          //serial_h
+int stio_tcgetattr(int fd, struct termios *termios_p);
+int stio_tcsetattr(int fd, int optional_actions, struct termios *termios_p);
+
+#endif                          //stermio_local_h

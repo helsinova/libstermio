@@ -26,6 +26,7 @@
 #include <log.h>
 #include <assure.h>
 #include <string.h>
+#include "local.h"
 
 #ifdef HAVE_POSIX_TERMIO
 #include <termio.h>
@@ -80,7 +81,7 @@
 
 /*
  * Multiple bit flag logging with shift-left offset for both FLAGs and ALLBITS
- * and prefix string 
+ * and prefix string
  */
 #define LOG_FLAGS_IN_BUF( FIELD, SLEFT, SBUF, MODE, ALLBITS, FLAG ) \
 {                                                                   \
@@ -89,15 +90,6 @@
 }
 
 #define NBITS_TCFLAG_T ( sizeof(tcflag_t) * 8 )
-
-/*
- *If enabled, debug logs in this file will be logged as warnings
- */
-#ifdef EHWE_DEBUGS_SERIAL
-#  define TCLOG LOGW
-#else
-#  define TCLOG LOGD
-#endif
 
 /*
  * Counts number of bits in a tcflag_t "flag"
@@ -123,7 +115,7 @@ static void str_append(char *dest, const char *apps)
 }
 
 /* Output given termios struct to log */
-void log_termios(const char *leads, struct termios *termios_p)
+void stio_log(const char *leads, struct termios *termios_p)
 {
 
     TCLOG("[%s]: 0x%04X 0x%04X 0x%04X 0x%04X \n", leads, termios_p->c_iflag,
@@ -207,7 +199,7 @@ void log_termios(const char *leads, struct termios *termios_p)
         LOG_FLAG_IN_BUF(sbuf, cflag, CBAUDEX);
 #endif
 
-#ifdef CBAUD /* Just in case.. */
+#ifdef CBAUD                    /* Just in case.. */
         LOG_FLAGS_IN_BUF(CBAUD, 0, sbuf, cflag, BAUD_ALL, B0);
         LOG_FLAGS_IN_BUF(CBAUD, 0, sbuf, cflag, BAUD_ALL, B50);
         LOG_FLAGS_IN_BUF(CBAUD, 0, sbuf, cflag, BAUD_ALL, B75);
@@ -229,7 +221,7 @@ void log_termios(const char *leads, struct termios *termios_p)
         LOG_FLAGS_IN_BUF(CBAUD, 0, sbuf, cflag, BAUD_ALL, B230400);
 #endif
 
-#ifdef CIBAUD /* Unknown by Cygwin (?) */
+#ifdef CIBAUD                   /* Unknown by Cygwin (?) */
         LOG_FLAGS_IN_BUF(CIBAUD, 16, sbuf, cflag, BAUD_ALL, B0);
         LOG_FLAGS_IN_BUF(CIBAUD, 16, sbuf, cflag, BAUD_ALL, B50);
         LOG_FLAGS_IN_BUF(CIBAUD, 16, sbuf, cflag, BAUD_ALL, B75);
@@ -251,7 +243,7 @@ void log_termios(const char *leads, struct termios *termios_p)
         LOG_FLAGS_IN_BUF(CIBAUD, 16, sbuf, cflag, BAUD_ALL, B230400);
 #endif
         LOG_FLAG_IN_BUF(sbuf, cflag, CLOCAL);
-#ifdef CMSPAR /* Unknown by Cygwin */
+#ifdef CMSPAR                   /* Unknown by Cygwin */
         LOG_FLAG_IN_BUF(sbuf, cflag, CMSPAR);
 #endif
         LOG_FLAG_IN_BUF(sbuf, cflag, CREAD);
@@ -286,7 +278,7 @@ void log_termios(const char *leads, struct termios *termios_p)
         LOG_FLAG_IN_BUF(sbuf, lflag, ECHOKE);
         LOG_FLAG_IN_BUF(sbuf, lflag, ECHOK);
         LOG_FLAG_IN_BUF(sbuf, lflag, ECHONL);
-#ifdef CMSPAR /* Unknown by Cygwin */
+#ifdef CMSPAR                   /* Unknown by Cygwin */
         LOG_FLAG_IN_BUF(sbuf, lflag, ECHOPRT);
 #endif
         LOG_FLAG_IN_BUF(sbuf, lflag, FLUSHO);
@@ -294,11 +286,11 @@ void log_termios(const char *leads, struct termios *termios_p)
         LOG_FLAG_IN_BUF(sbuf, lflag, IEXTEN);
         LOG_FLAG_IN_BUF(sbuf, lflag, ISIG);
         LOG_FLAG_IN_BUF(sbuf, lflag, NOFLSH);
-#ifdef CMSPAR /* Unknown by Cygwin */
+#ifdef CMSPAR                   /* Unknown by Cygwin */
         LOG_FLAG_IN_BUF(sbuf, lflag, PENDIN);
 #endif
         LOG_FLAG_IN_BUF(sbuf, lflag, TOSTOP);
-#ifdef CMSPAR /* Unknown by Cygwin */
+#ifdef CMSPAR                   /* Unknown by Cygwin */
         LOG_FLAG_IN_BUF(sbuf, lflag, XCASE);
 #endif
         TCLOG("[%s]: >>> L-flags: %s\n", leads, sbuf);
@@ -306,101 +298,23 @@ void log_termios(const char *leads, struct termios *termios_p)
 }
 
 /* Wrapper as is of system version - but with logging */
-static int _tcgetattr(int fd, struct termios *termios_p)
+int stio_tcgetattr(int fd, struct termios *termios_p)
 {
     int rc;
 
     rc = tcgetattr(fd, termios_p);
-    log_termios("tcGetattr", termios_p);
+    stio_log("tcGetattr", termios_p);
 
     return rc;
 }
 
 /* Wrapper as is of system version - but with logging */
-static int _tcsetattr(int fd, int optional_actions, struct termios *termios_p)
+int stio_tcsetattr(int fd, int optional_actions, struct termios *termios_p)
 {
     int rc;
 
-    log_termios("tcSetattr", termios_p);
+    stio_log("tcSetattr", termios_p);
     rc = tcsetattr(fd, optional_actions, termios_p);
 
     return rc;
-}
-/* Set terminal to as doind as little as possible (raw) settings and knwn to
- * be good defaults for BusPirate */
-void setserial_raw_bp(int fd)
-{
-    struct termios c_termios;
-    int rc;
-
-    ASSURE(_tcgetattr(fd, &c_termios) == 0);
-#ifdef HAVE_CYGWIN
-    ASSURE(cfsetspeed(&c_termios, B115200) == 0);
-#else
-    ASSURE(cfsetspeed(&c_termios, 115200) == 0);
-#endif
-    rc = cfgetispeed(&c_termios);
-    TCLOG("cfgetispeed: %d\n", rc);
-    rc = cfgetospeed(&c_termios);
-    TCLOG("cfgetospeed: %d\n", rc);
-
-    /* Make it so...*/
-    ASSURE(_tcsetattr(fd, TCSANOW, &c_termios) == 0);
-
-    /* Flush pending input.  */
-    ASSURE(tcflush(fd, TCIFLUSH) == 0);
-}
-
-/* Set terminal settings known to be good defaults for BusPirate */
-void setserial_term_bp(int fd)
-{
-    struct termios c_termios;
-    int rc;
-
-    /* Read termios settings. We don't use them, but reading will put current
-       values in log */
-    ASSURE(_tcgetattr(fd, &c_termios) == 0);
-
-    /* Clear all flags */
-    c_termios.c_iflag = 0;
-    c_termios.c_oflag = 0;
-    c_termios.c_cflag = 0;
-    c_termios.c_lflag = 0;
-
-
-#ifdef NEVER
-    /* Rewrite - Good host */
-    c_termios.c_iflag = 0x1400;
-    c_termios.c_oflag = 0x0000;
-    c_termios.c_cflag = 0x14B2;
-    c_termios.c_lflag = 0x0000;
-#endif
-
-    c_termios.c_cflag |= CS8;
-    c_termios.c_cflag |= CREAD;
-    c_termios.c_cflag |= HUPCL;
-
-#ifdef NEVER
-    //cSmin = 1;
-    c_termios.c_cc[VMIN] = 1;   //cSmin;
-    c_termios.c_cc[VTIME] = 1;
-#endif
-  /* Adjust in/out speeds using convenience API */
-#ifdef HAVE_CYGWIN
-    ASSURE(cfsetspeed(&c_termios, B115200) == 0);
-#else
-    ASSURE(cfsetspeed(&c_termios, 115200) == 0);
-#endif
-    rc = cfgetispeed(&c_termios);
-    TCLOG("cfgetispeed: %d\n", rc);
-    rc = cfgetospeed(&c_termios);
-    TCLOG("cfgetospeed: %d\n", rc);
-
-    /* Make it so...*/
-    ASSURE(_tcsetattr(fd, TCSANOW, &c_termios) == 0);
-
-    /* Flush pending input.  */
-    ASSURE(tcflush(fd, TCIFLUSH) == 0);
-
-    ASSURE(_tcgetattr(fd, &c_termios) == 0);
 }

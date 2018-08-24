@@ -9,6 +9,7 @@ include_directories("${PROJECT_SOURCE_DIR}")
 
 set(LIBSTERMIO_SOURCE
 	stermio.c
+	buspirate.c
 )
 
 set(LIBSTERMIO_SOURCE
