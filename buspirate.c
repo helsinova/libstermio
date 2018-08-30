@@ -23,8 +23,8 @@
 
 #include "config.h"
 #include <stermio.h>
-#include <log.h>
-#include <assure.h>
+#include <liblog/log.h>
+#include <liblog/assure.h>
 #include <string.h>
 #include "local.h"
 
