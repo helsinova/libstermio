@@ -22,7 +22,7 @@
  */
 
 #include "config.h"
-#include <stermio.h>
+#include <stermio/stermio.h>
 #include <liblog/log.h>
 #include <liblog/assure.h>
 #include <string.h>

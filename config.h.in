@@ -1,6 +1,18 @@
+/* LIBSTERMIO config file */
+#ifndef libstermio_config_h
+#define libstermio_config_h
+
+#define ON 1
+#define OFF 0
+
+#define PROJ_NAME "@PROJECT_NAME@"
+#define VERSION_MAJOR @LIBSTERMIO_VERSION_MAJOR@
+#define VERSION_MINOR @LIBSTERMIO_VERSION_MINOR@
+#define VERSION_PATCH @LIBSTERMIO_VERSION_PATCH@
+#define VERSION "@LIBSTERMIO_VERSION_MAJOR@.@LIBSTERMIO_VERSION_MINOR@.@LIBSTERMIO_VERSION_PATCH@"
+
 #cmakedefine HAVE_POSIX_TERMIO
 #cmakedefine HAVE_CYGWIN
 #cmakedefine EHWE_DEBUGS_SERIAL
 
-
-
+#endif                          //libstermio_config_h
