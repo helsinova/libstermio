@@ -39,7 +39,7 @@ add_library(stermio_static STATIC ${STERMIO_SOURCE})
 
 set_target_properties(
   stermio PROPERTIES PUBLIC_HEADER
-  "include/libstermio/stermio.h;include/libstermio/assure.h")
+  "include/stermio/stermio.h")
 
 # Installation
 # ------------
